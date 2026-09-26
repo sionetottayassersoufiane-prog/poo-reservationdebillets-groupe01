@@ -23,3 +23,4 @@ public class TrajetBus extends Trajet {
         return compagnie;
     }
 }
+
