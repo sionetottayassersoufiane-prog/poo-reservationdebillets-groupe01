@@ -1,12 +1,10 @@
-
-public abstract class Trajet {
+public abstract class Trajet implements Reservable {
     private int numero;
     private String villeDepart;
     private String villeArrivee;
     private String date;
     private String heureDepart;
     private int placesDisponibles;
-
 
     private int heuresAvantDepart;
 
@@ -21,7 +19,7 @@ public abstract class Trajet {
         this.heuresAvantDepart = heuresAvantDepart;
     }
 
-
+    @Override
     public boolean reserverPlace() {
         if (placesDisponibles <= 0) {
             System.out.println("Reservation refusee : le trajet #" + numero + " est complet.");
@@ -31,10 +29,12 @@ public abstract class Trajet {
         return true;
     }
 
+    @Override
     public void libererPlace() {
         placesDisponibles = placesDisponibles + 1;
     }
 
+    @Override
     public boolean estComplet() {
         return placesDisponibles == 0;
     }
