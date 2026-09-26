@@ -11,10 +11,12 @@ public class Ticket {
         this.trajet = trajet;
         this.prix = prix;
 
-        trajet.reserverPlace();
-        this.statut = "Reserve";
+        if (trajet.reserverPlace()) {
+            this.statut = "Reserve";
+        } else {
+            this.statut = "Refuse";
+        }
     }
-
 
     public boolean peutEtreAnnule() {
         return trajet.getHeuresAvantDepart() > trajet.delaiAnnulationHeures();
@@ -41,7 +43,7 @@ public class Ticket {
             statut = "Paye";
         }
     }
-    
+
     public boolean estDejaReserve() {
         return statut.equals("Reserve") || statut.equals("Paye");
     }
