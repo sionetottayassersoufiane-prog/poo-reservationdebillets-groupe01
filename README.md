@@ -2,11 +2,11 @@
 # Billetterie de voyage — POO IIAA511
 
 **Enseignant :** Dr Babacar LEYE
-**Groupe :** SIONE Totta Yasser Soufiane, YELKUNI Franck Onel, NIKIEMA P. Hanifah, NADEMBEGA Ingrid
+**Groupe :** SIONE Totta Yasser Soufiane, YELKUNI Tindwendé Franck Onel, NIKIEMA P. Hanifah, NADEMBEGA Ingrid Océane
 
 ## Contexte et description du système
 
-On est partis d'un besoin assez simple : une petite agence de transport veut un programme pour suivre ses trajets et ses voyageurs. Pas de base de données, pas d'interface graphique, rien de compliqué, juste de quoi mettre en pratique ce qu'on a vu sur les classes et l'encapsulation.
+On est partis d'un besoin assez simple : une petite agence de transport veut un programme pour suivre ses trajets et ses voyageurs. 
 
 L'agence propose deux façons de voyager, en bus ou en avion. Chaque trajet a un numéro, une ville de départ, une ville d'arrivée, une date, une heure et un nombre de places encore libres. Un voyageur, lui, c'est juste un numéro, un nom et un email. Quand il réserve une place, ça crée un ticket. On peut annuler ce ticket tant qu'on n'est pas trop proche du départ, sinon c'est refusé. Et une fois le départ arrivé, le ticket passe automatiquement en "payé".
 
@@ -14,75 +14,81 @@ Ce qui nous a plu dans ce sujet, c'est que le bus et l'avion n'ont pas les même
 
 ## Le besoin en deux phrases
 
-Un voyageur doit pouvoir réserver une place sur un trajet en bus ou en avion, puis l'annuler tant que le délai le permet. Le programme doit aussi valider un ticket automatiquement au départ et empêcher qu'un même ticket soit réservé deux fois.
+Un voyageur doit pouvoir réserver une place sur un trajet en bus ou en avion, puis l'annuler tant que le délai le permet. Le programme doit aussi valider un ticket automatiquement au départ, refuser une réservation sur un trajet complet et empêcher qu'un même ticket soit réservé deux fois.
 
 ## Les classes du projet
 
 - **Voyageur** : une personne qui réserve un trajet (numéro, nom, email).
 - **Trajet** (abstraite) : tout ce qui est commun à un déplacement, villes, date, heure, places disponibles. Elle oblige ses classes filles à préciser leur propre délai d'annulation, et on ne peut jamais l'instancier telle quelle.
+- **Reservable** (interface) : ce que sait faire un trajet qu'on peut réserver puis libérer (`reserverPlace()`, `libererPlace()`, `estComplet()`). `Trajet` l'implémente.
 - **TrajetBus** et **TrajetVol** : héritent de `Trajet`, chacune avec sa particularité (la compagnie pour le bus, le numéro de vol pour l'avion) et sa propre règle d'annulation.
 - **Ticket** : fait le lien entre un voyageur et un trajet, suit son statut (Réservé, Payé, Annulé, ou Refusé si le trajet était déjà complet) et bloque les doubles réservations.
 - **Main** : rejoue tout ça avec des exemples concrets, du début à la fin.
+- **TestsScenarios** : vérifie un par un les points qu'on nous a demandé de couvrir, réservation acceptée, trajet complet, annulation acceptée, annulation refusée, et surtout qu'aucune opération interdite ne modifie l'état d'un ticket ou d'un trajet.
 
 ## Structure du dépôt
 
+```
 ├── src/
-│   ├── Voyageur.java
+│   ├── Reservable.java
 │   ├── Trajet.java
 │   ├── TrajetBus.java
-│   ├── TrajetVol.java
-│   ├── Ticket.java
-│   └── Main.java
-├── docs/
-│   └── diagramme-classes.pdf
+│   └── TrajetVol.java
+├── Voyageur.java
+├── Ticket.java
+├── Main.java
+├── TestsScenarios.java
+├── diagramme-classes-page1.pdf
 └── README.md
+```
 
 ## Comment lancer le programme
 
 1. Ouvrir le projet dans IntelliJ IDEA (ou un autre IDE Java).
-2. Compiler l'ensemble des fichiers du dossier `src/`.
-3. Exécuter la classe `Main`.
+2. Compiler l'ensemble des fichiers.
+3. Exécuter la classe `Main` pour le scénario complet, ou `TestsScenarios` pour vérifier chaque cas demandé (chaque test affiche `[OK]` ou `[ECHEC]`, avec un bilan à la fin).
 
-Le programme affiche dans l'ordre : la création de deux voyageurs et deux trajets, une réservation sur le bus suivie d'une annulation acceptée, une réservation sur le vol suivie d'une annulation refusée, la validation automatique d'un ticket, puis la vérification anti-double-réservation.
+Le programme affiche dans l'ordre : la création de deux voyageurs et deux trajets, une réservation sur le bus suivie d'une annulation acceptée, une réservation sur le vol suivie d'une annulation refusée, la validation automatique d'un ticket, la vérification anti-double-réservation, puis un dernier cas où le trajet est déjà complet à la création.
 
 ---
 
+## Ce qui a changé depuis la dernière version
+
+- Ajout de l'interface `Reservable`, implémentée par `Trajet`.
+- Correction d'un bug dans `Ticket` : le constructeur ignorait le résultat de `reserverPlace()`, un ticket pouvait donc naître "Réservé" sur un trajet déjà complet. Il naît maintenant "Refusé" dans ce cas, ce qui a aussi permis de simplifier `Main`, qui contournait ce problème avec une vérification `estComplet()` avant chaque création de ticket.
+- Ajout de `TestsScenarios.java`, qui vérifie explicitement les cas demandés dans le retour du prof.
+- Noms des membres harmonisés dans tous les fichiers.
+
 ## Ce que chacun a fait
 
-### SIONE Totta Yasser Soufiane — modèle et hiérarchie (`Trajet`, `TrajetBus`, `TrajetVol`)
+### SIONE Totta Yasser Soufiane : modèle, hiérarchie et interface (`Trajet`, `TrajetBus`, `TrajetVol`, `Reservable`)
 
-Je me suis chargé de la colonne vertébrale du programme, la classe `Trajet` et ses deux sous-classes. Au TD-TP1, on avait bêtement fixé le délai d'annulation à 72h en dur dans `Ticket`, pareil pour tout le monde. Le problème, c'est qu'un bus et un avion ne fonctionnent juste pas de la même manière : un vol se réserve et se bloque bien plus tôt qu'un bus. Donc au moment de passer à l'héritage, j'ai sorti cette règle de `Ticket` et j'en ai fait une méthode abstraite, `delaiAnnulationHeures()`, que chaque sous-classe redéfinit à sa façon : 24h pour `TrajetBus`, 72h pour `TrajetVol`. Résultat, `Ticket` n'a même plus besoin de savoir si elle a affaire à un bus ou à un avion, elle demande juste au trajet sa propre règle.
+J'ai géré la partie centrale du programme : la classe `Trajet` et ses deux sous-classes. Au TD-TP1, on avait mis le délai d'annulation en dur dans `Ticket`, à 72h pour tout le monde. Mais en vrai, un bus et un avion ça marche pas pareil : un vol se bloque bien plus tôt qu'un bus. Du coup quand on est passés à l'héritage, j'ai sorti cette règle de `Ticket` pour en faire une méthode abstraite, `delaiAnnulationHeures()`, que chaque sous-classe redéfinit comme elle veut : 24h pour `TrajetBus`, 72h pour `TrajetVol`. Comme ça, `Ticket` n'a même plus besoin de savoir si c'est un bus ou un avion en face, il demande juste au trajet.
 
-Deuxième chose que j'ai dû justifier : je n'ai pas géré de vraies dates. On n'a pas encore vu ça en cours, et se lancer là-dedans nous aurait fait perdre un temps fou pour un résultat pas franchement plus lisible. J'ai donc gardé un simple compteur, `heuresAvantDepart`, qu'on fixe à la création du trajet. C'est un raccourci assumé, mais il fait exactement ce qu'il faut pour tester les règles d'annulation.
+Après, on nous a demandé de sortir `reserverPlace()`, `libererPlace()` et `estComplet()` dans une vraie interface au lieu de les laisser dans la classe abstraite. J'ai fait `Reservable` pour ça, et `Trajet` l'implémente avec `@Override` sur les trois méthodes. Ça change rien au fonctionnement, mais ça sépare bien ce que `Trajet` *est* de ce qu'il *sait faire*.
 
-Là où j'ai vraiment galéré, c'est que dans une version antérieure j'avais recopié la méthode `afficher()` presque à l'identique dans `TrajetBus` et dans `TrajetVol`, avec juste une ligne qui changeait. Ça marchait, mais c'était clairement pas propre, deux copier-coller pour une seule idée. Je suis revenu dessus et j'ai gardé `afficher()` uniquement dans `Trajet`, chaque classe fille l'appelle avec `super.afficher()` puis ajoute seulement sa ligne en plus (la compagnie ou le numéro de vol). C'est un détail, mais c'est le genre d'erreur qu'on ne voit qu'en la refaisant une deuxième fois.
+Sinon je gère pas de vraies dates, on n'a pas encore vu ça en cours et ça nous aurait fait perdre trop de temps pour pas grand-chose. J'ai juste mis un compteur, `heuresAvantDepart`, fixé à la création du trajet. C'est un raccourci mais ça suffit largement pour tester les règles d'annulation.
 
-En relisant tout à la fin, j'ai aussi rendu `final` les attributs qui ne bougent jamais après la création (numéro, villes, date...) et j'ai sorti les 24h et les 72h dans des constantes (`DELAI_ANNULATION_HEURES`) plutôt que des nombres écrits en dur dans le code. Ça paraît petit, mais ça évite qu'on change la valeur à un seul endroit et qu'on oublie l'autre.
+### YELKUNI Tindwendé Franck Onel : la classe `Ticket`
 
-### YELKUNI Franck Onel — la classe `Ticket`
+Moi c'est tout ce qui touche à la réservation. `Ticket` fait le lien entre un voyageur et un trajet, et garde son statut : Réservé à la création, Payé une fois validé, ou Annulé si c'est encore possible. Le truc important c'est que `Ticket` doit jamais avoir à deviner le type du trajet pour savoir s'il peut annuler. Il appelle juste `delaiAnnulationHeures()` sur le trajet et c'est tout. Ça m'évite d'écrire des trucs genre "si c'est un bus... si c'est un vol...", ce qui aurait cassé tout l'intérêt de ce que Yasser a fait avec l'héritage et l'interface.
 
-Ma partie, c'est tout ce qui touche à la réservation en elle-même. `Ticket` fait le lien entre un voyageur et un trajet, et porte son statut : Réservé dès sa création, Payé une fois validé, ou Annulé s'il est encore temps. Le point sur lequel j'ai vraiment insisté, c'est que `Ticket` ne doit jamais avoir à deviner le type du trajet pour savoir s'il peut annuler ou pas. Elle se contente d'appeler `delaiAnnulationHeures()` sur le trajet, et c'est lui qui répond. Ça m'a évité d'écrire un bloc de conditions du style "si c'est un bus, alors... si c'est un vol, alors...", qui aurait cassé tout l'intérêt de ce que Yasser a mis en place avec l'héritage.
+Le bug le plus chiant que j'ai eu à régler, c'était sur la création d'un ticket : le constructeur appelait `trajet.reserverPlace()` sans regarder ce que ça renvoyait, du coup un ticket pouvait se retrouver "Réservé" même si le trajet était complet et qu'aucune place avait vraiment été prise. On avait bricolé ça dans `Main` en vérifiant `estComplet()` avant, mais c'était pas la bonne classe pour gérer ça. Je l'ai corrigé direct dans `Ticket` : le constructeur regarde maintenant ce que `reserverPlace()` renvoie, et si ça échoue, le ticket naît "Refusé" au lieu de raconter n'importe quoi sur son état. C'est exactement ce bug qu'on nous a signalé, donc c'était la priorité pour cette version.
 
-J'ai aussi ajouté une méthode `estDejaReserve()`, parce qu'une des questions de revue du sujet demandait explicitement d'empêcher qu'un même document (ou ici, ticket) soit réservé deux fois. Elle renvoie vrai si le statut est Réservé ou Payé, ce qui suffit à couvrir le cas.
+Avec Ingrid, on a aussi repris `annuler()` et `validerAuto()` pour être sûrs qu'aucune des deux méthodes touche au statut ou aux places quand l'opération est refusée, même sur un ticket déjà annulé ou déjà refusé.
 
-Honnêtement, ma vraie difficulté a été de gérer proprement les refus, sans jamais laisser le ticket dans un état bizarre. Si l'annulation échoue, que ce soit parce que le statut n'est pas "Réservé" ou parce que le délai est dépassé, il ne fallait surtout pas toucher au statut ni libérer la place par erreur. J'ai dû reprendre plusieurs fois cette méthode avec Ingrid, en testant différents scénarios dans `Main`, avant d'être sûr que le comportement était le bon dans tous les cas.
+### NIKIEMA P. Hanifah : la classe `Voyageur` et le schéma UML
 
-Un deuxième bug s'est glissé dans la première version : le constructeur de `Ticket` appelait `trajet.reserverPlace()` sans jamais regarder le résultat, donc un ticket pouvait naître avec le statut "Réservé" même quand le trajet était complet et qu'aucune place n'avait vraiment été prise. On avait "réglé" ça côté `Main` en vérifiant `estComplet()` avant de créer le ticket, mais ce n'était pas la bonne classe pour porter cette responsabilité. J'ai corrigé ça directement dans `Ticket` : le constructeur regarde maintenant ce que répond `reserverPlace()`, et si la réservation échoue, le ticket naît avec le statut "Refusé" au lieu de mentir sur son propre état.
+Ma partie est plus courte côté code mais bon quand même : la classe `Voyageur`, avec numéro, nom et email, tout en privé, tous initialisés par un seul constructeur. Je me suis aussi occupée du diagramme de classes, avec les liens entre `Voyageur`, `Trajet` et `Ticket`, l'héritage entre `Trajet`, `TrajetBus` et `TrajetVol`, et maintenant l'implémentation de `Reservable` par `Trajet`.
 
-### NIKIEMA P. Hanifah — la classe `Voyageur` et le schéma UML
+Ce que j'ai dû défendre en groupe, c'est de pas mettre de setters pour le nom et l'email. Une fois qu'un voyageur est créé, rien ne change dans cette version du programme, donc des setters auraient juste ouvert une porte inutile pour modifier les données n'importe comment depuis `Main`, exactement ce qu'on essaie d'éviter avec l'encapsulation.
 
-Ma partie est plus courte niveau code, mais elle a son importance : la classe `Voyageur`, avec son numéro, son nom et son email, tous en privé, initialisés une bonne fois pour toutes par un seul constructeur. Je me suis aussi occupée du diagramme de classes dans `docs/`, en essayant de bien montrer les liens entre `Voyageur`, `Trajet` et `Ticket`, ainsi que l'héritage entre `Trajet`, `TrajetBus` et `TrajetVol`.
+Ma vraie difficulté, c'était de pas trop surcharger le diagramme UML, et bien distinguer visuellement l'héritage (trait plein) de l'implémentation d'interface (trait pointillé), un truc qui existait pas avant qu'on ajoute `Reservable`.
 
-Le choix que j'ai dû défendre en groupe, c'est l'absence de setters pour le nom et l'email. Une fois qu'un voyageur est créé, rien ne change plus dans cette première version du programme, donc ajouter des setters n'aurait servi qu'à ouvrir une porte inutile pour modifier les données n'importe comment depuis `Main`, ce qu'on cherchait justement à éviter avec l'encapsulation.
+### NADEMBEGA Ingrid Océane : la classe `Main` et les tests de scénarios
 
-Ma difficulté a surtout été de ne pas trop en faire sur le diagramme UML. On nous a bien précisé qu'un schéma simple suffisait, sans multiplicités détaillées, et j'avais tendance à vouloir tout représenter dans les moindres détails. Il a fallu que je me limite volontairement aux classes, aux attributs principaux et aux liens essentiels.
+Moi je me suis occupée de faire tourner tout ce que les autres ont codé. Dans `Main`, je crée deux voyageurs et deux trajets, un bus et un vol, je réserve une place sur chacun, puis je teste les deux cas d'annulation : celui qui doit marcher (le bus, largement à l'avance) et celui qui doit être refusé (le vol, trop proche du départ). J'ai ajouté en plus le test de validation automatique, la vérification anti-double-réservation, et un dernier scénario avec un trajet créé direct à zéro place.
 
-### NADEMBEGA Ingrid — la classe `Main`
+J'avais remarqué que mon `Main` de départ cachait un bug : je vérifiais `estComplet()` avant de créer un ticket, mais si c'était faux, la variable `ticket` restait à `null` et ça plantait au premier `afficher()`. Une fois que Franck a corrigé `Ticket` pour qu'il gère ça lui-même, j'ai pu simplifier `Main` en enlevant complètement ce bricolage.
 
-Je me suis occupée de faire vivre tout ce que les autres ont codé. Dans `Main`, je crée deux voyageurs et deux trajets, un bus et un vol, je réserve une place sur chacun, puis je teste les deux cas d'annulation : celui qui doit passer (le bus, largement à l'avance) et celui qui doit être refusé (le vol, trop proche du départ). J'ai ajouté en plus le test de validation automatique du ticket et la vérification anti-double-réservation, comme demandé dans les questions de revue du sujet.
-
-Le choix que j'ai fait, c'est de construire `Main` comme un vrai petit scénario plutôt qu'une suite de tests décousus. J'ai découpé l'affichage avec des titres du genre "=== Annulation refusée ===", pour que n'importe qui, même sans connaître le code, puisse suivre ce qui se passe rien qu'en lisant la console.
-
-La difficulté que j'ai rencontrée, c'est de trouver des valeurs crédibles pour que le scénario tienne debout : il fallait un trajet avec assez de marge pour que l'annulation soit acceptée, et un autre juste trop proche du départ pour qu'elle soit refusée, sans tomber non plus sur des chiffres absurdes. J'ai dû ajuster plusieurs fois les heures avant départ avant que le scénario ait vraiment du sens.
-
-J'ai repéré en testant que mon `Main` initial cachait en fait un bug : je vérifiais `estComplet()` avant de créer un ticket, mais si cette condition était fausse, la variable `ticket` restait à `null` et le programme plantait au premier `afficher()`. Une fois que Franck a corrigé `Ticket` pour qu'il gère lui-même ce cas, j'ai pu simplifier `Main` et j'en ai profité pour ajouter un dernier scénario avec un trajet créé directement à zéro place disponible, histoire de montrer clairement qu'un ticket peut naître "Refusé" sans jamais faire planter le programme.
+La nouveauté de cette version, c'est `TestsScenarios`, qu'on nous a demandé d'ajouter pour vérifier chaque cas clairement au lieu de juste raconter un scénario dans `Main`. J'ai repris chaque exigence une par une, et surtout le point sur lequel on a le plus insisté dans le retour : une opération interdite (annuler un ticket déjà annulé, valider un ticket déjà annulé, annuler un ticket né refusé) ne doit jamais changer l'état. Pour chaque cas, je compare l'état avant et après l'opération refusée, plutôt que de me fier juste au message affiché.
