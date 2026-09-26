@@ -25,3 +25,4 @@ public class Voyageur {
         return email;
     }
 }
+
