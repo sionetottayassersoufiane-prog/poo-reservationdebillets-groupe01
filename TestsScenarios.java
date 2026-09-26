@@ -106,4 +106,3 @@ public class TestsScenarios {
         verifier("annuler un ticket Refuse ne modifie pas les places du trajet",
                 complet.getPlacesDisponibles() == placesAvantOperations);
     }
-}
